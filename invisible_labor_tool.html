@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invisible Labor & Burnout Awareness Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        h1 { text-align: center; color: #2c3e50; }
+        label { display: block; margin: 10px 0 5px; }
+        input[type="range"] { width: 100%; }
+        input[type="number"] { width: 60px; }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background-color: #3498db; }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+        }
+        .bar {
+            height: 20px;
+            width: 0%;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .green { background-color: #2ecc71; }
+        .yellow { background-color: #f1c40f; }
+        .red { background-color: #e74c3c; }
+        .disclaimer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Invisible Labor & Burnout Awareness Tool</h1>
+
+    <!-- Input Form -->
+    <div id="inputForm">
+        <label>Physical Labor Tasks (0–10)</label>
+        <input type="range" id="physical" min="0" max="10" value="0">
+        <span id="physicalVal">0</span>
+
+        <label>Emotional Labor Tasks (0–10)</label>
+        <input type="range" id="emotional" min="0" max="10" value="0">
+        <span id="emotionalVal">0</span>
+
+        <label>Mental Load Tasks (0–10)</label>
+        <input type="range" id="mental" min="0" max="10" value="0">
+        <span id="mentalVal">0</span>
+
+        <label>Interruptions (0–10)</label>
+        <input type="range" id="interruptions" min="0" max="10" value="0">
+        <span id="interruptionsVal">0</span>
+
+        <label>Shift Length (hours)</label>
+        <input type="number" id="shift" min="0" max="24" value="8">
+
+        <label>Sleep Last Night (hours)</label>
+        <input type="number" id="sleep" min="0" max="12" value="7">
+
+        <button onclick="calculateScores()">Calculate</button>
+    </div>
+
+    <!-- Results -->
+    <div class="result" id="results" style="display:none;">
+        <h2>Results</h2>
+        <p>Invisible Labor Score: <span id="laborScore">0</span> (<span id="laborLevel"></span>)</p>
+        <div class="bar" id="laborBar"></div>
+
+        <p>Fatigue Awareness: <span id="fatigueScore">0</span> (<span id="fatigueLevel"></span>)</p>
+        <div class="bar" id="fatigueBar"></div>
+
+        <h3>Summary</h3>
+        <p id="summaryText"></p>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+        <strong>Disclaimer:</strong> This tool is for personal workload awareness only. It does not provide medical advice, diagnosis, or treatment recommendations.
+    </div>
+
+    <script>
+        // Update slider values dynamically
+        const sliders = ["physical", "emotional", "mental", "interruptions"];
+        sliders.forEach(id => {
+            const slider = document.getElementById(id);
+            const output = document.getElementById(id + "Val");
+            slider.addEventListener("input", () => {
+                output.textContent = slider.value;
+            });
+        });
+
+        // Calculation logic
+        function calculateScores() {
+            const physical = parseInt(document.getElementById("physical").value);
+            const emotional = parseInt(document.getElementById("emotional").value);
+            const mental = parseInt(document.getElementById("mental").value);
+            const interruptions = parseInt(document.getElementById("interruptions").value);
+            const shift = parseInt(document.getElementById("shift").value);
+            const sleep = parseInt(document.getElementById("sleep").value);
+
+            // Invisible Labor Score
+            let laborScore = (physical*4) + (emotional*3) + (mental*2) + (interruptions*1);
+            if(laborScore > 100) laborScore = 100; // cap at 100
+            let laborLevel = "";
+            if(laborScore <= 30) laborLevel = "Low";
+            else if(laborScore <= 60) laborLevel = "Medium";
+            else laborLevel = "High";
+
+            // Fatigue Awareness Score
+            let fatigueScore = laborScore + (shift*2) - (sleep*1.5);
+            if(fatigueScore < 0) fatigueScore = 0;
+            let fatigueLevel = "";
+            if(fatigueScore < 50) fatigueLevel = "Green";
+            else if(fatigueScore <= 75) fatigueLevel = "Yellow";
+            else fatigueLevel = "Red";
+
+            // Update HTML
+            document.getElementById("laborScore").textContent = laborScore;
+            document.getElementById("laborLevel").textContent = laborLevel;
+            let laborBar = document.getElementById("laborBar");
+            laborBar.style.width = laborScore + "%";
+            laborBar.className = "bar " + (laborLevel=="Low"?"green": laborLevel=="Medium"?"yellow":"red");
+
+            document.getElementById("fatigueScore").textContent = fatigueScore.toFixed(1);
+            document.getElementById("fatigueLevel").textContent = fatigueLevel;
+            let fatigueBar = document.getElementById("fatigueBar");
+            fatigueBar.style.width = Math.min(fatigueScore,100) + "%";
+            fatigueBar.className = "bar " + (fatigueLevel=="Green"?"green": fatigueLevel=="Yellow"?"yellow":"red");
+
+            // Generate summary text
+            let summary = `Today you had a ${laborLevel.toLowerCase()} workload. Your overall Invisible Labor Score is ${laborScore} (${laborLevel}). Fatigue Awareness indicates ${fatigueLevel}. Consider taking rest, reflection, or support if possible.`;
+            document.getElementById("summaryText").textContent = summary;
+
+            // Show results
+            document.getElementById("results").style.display = "block";
+        }
+    </script>
+
+</body>
+</html>
